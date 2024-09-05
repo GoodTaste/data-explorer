@@ -13,21 +13,22 @@ const DataExplorer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const parseSchema = (markdown) => {
-    console.log('Parsing schema from markdown:', markdown);
+  const baseUrl = `https://raw.githubusercontent.com/Meaningful-Bites/data/main`;
+
+  const parseSchema = useCallback((markdown) => {
     const tables = [];
     let currentTable = null;
   
     markdown.split('\n').forEach(line => {
-      console.log('Processing line:', line);
       if (line.startsWith('## ')) {
         if (currentTable) {
           tables.push(currentTable);
         }
         currentTable = { name: line.substring(3).trim(), columns: [] };
       } else if (line.startsWith('| ') && currentTable) {
-        const [name, type] = line.split('|').filter(Boolean).map(s => s.trim());
-        if (name && type) {
+        const parts = line.split('|').filter(Boolean).map(s => s.trim());
+        if (parts.length >= 2) {
+          const [name, type] = parts;
           currentTable.columns.push({ name, type });
         }
       }
@@ -37,9 +38,8 @@ const DataExplorer = () => {
       tables.push(currentTable);
     }
   
-    console.log('Parsed tables:', tables);
     return tables;
-  };
+  }, []);
 
   const loadTableData = useCallback(async (tableName) => {
     if (tables[tableName]) {
@@ -50,8 +50,7 @@ const DataExplorer = () => {
 
     try {
       setIsLoading(true);
-      const url = `https://raw.githubusercontent.com/Meaningful-Bites/data/main/public_data/snapshots/latest/${tableName}.csv`;
-      console.log(`Fetching data for ${tableName} from:`, url);
+      const url = `${baseUrl}/public_data/snapshots/latest/${tableName}.csv`;
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -59,10 +58,7 @@ const DataExplorer = () => {
       }
       
       const text = await response.text();
-      console.log(`Received CSV data for ${tableName}:`, text.substring(0, 200) + '...'); // Log the first 200 characters
-      
       const result = Papa.parse(text, { header: true });
-      console.log(`Parsed data for ${tableName}:`, result.data.slice(0, 5)); // Log the first 5 rows
       
       setTables(prev => ({ ...prev, [tableName]: result.data }));
       setCurrentTable(tableName);
@@ -73,14 +69,13 @@ const DataExplorer = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [tables]);
+  }, [tables, baseUrl]);
 
   useEffect(() => {
     const fetchSchema = async () => {
       try {
         setIsLoading(true);
-        const url = 'https://raw.githubusercontent.com/Meaningful-Bites/data/main/SCHEMA.md';
-        console.log('Fetching schema from:', url);
+        const url = `${baseUrl}/SCHEMA.md`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -88,20 +83,14 @@ const DataExplorer = () => {
         }
         
         const text = await response.text();
-        console.log('Received schema text:', text);
-        
         const parsedSchema = parseSchema(text);
-        console.log('Parsed schema:', parsedSchema);
         
-        if (!parsedSchema || !Array.isArray(parsedSchema)) {
-          throw new Error('Invalid schema format');
+        if (!parsedSchema || !Array.isArray(parsedSchema) || parsedSchema.length === 0) {
+          throw new Error('Invalid schema format or empty schema');
         }
         
         setSchema(parsedSchema);
-        
-        if (parsedSchema.length > 0) {
-          await loadTableData(parsedSchema[0].name);
-        }
+        await loadTableData(parsedSchema[0].name);
       } catch (error) {
         console.error('Error fetching or parsing schema:', error);
         setError(`Failed to fetch or parse schema: ${error.message}`);
@@ -111,9 +100,9 @@ const DataExplorer = () => {
     };
 
     fetchSchema();
-  }, [loadTableData]);
+  }, [parseSchema, loadTableData, baseUrl]);
 
-  const handleSearch = (e) => {
+  const handleSearch = useCallback((e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
     if (currentTable && tables[currentTable]) {
@@ -124,14 +113,13 @@ const DataExplorer = () => {
       );
       setFilteredData(filtered);
     }
-  };
+  }, [currentTable, tables]);
 
-  const handleSort = (key) => {
-    const sorted = [...filteredData].sort((a, b) => 
+  const handleSort = useCallback((key) => {
+    setFilteredData(prevData => [...prevData].sort((a, b) => 
       a[key] > b[key] ? 1 : -1
-    );
-    setFilteredData(sorted);
-  };
+    ));
+  }, []);
 
   if (isLoading) {
     return <div className="p-4">Loading...</div>;
