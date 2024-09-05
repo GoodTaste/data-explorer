@@ -1,5 +1,6 @@
 import React from 'react';
 import DataExplorer from './components/DataExplorer';
+import './tailwind.css';
 
 function App() {
   return (
