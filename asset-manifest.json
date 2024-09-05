@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/data-explorer/static/css/main.0a60df3c.css",
+    "main.js": "/data-explorer/static/js/main.e94410ac.js",
+    "index.html": "/data-explorer/index.html",
+    "main.0a60df3c.css.map": "/data-explorer/static/css/main.0a60df3c.css.map",
+    "main.e94410ac.js.map": "/data-explorer/static/js/main.e94410ac.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0a60df3c.css",
+    "static/js/main.e94410ac.js"
+  ]
+}
