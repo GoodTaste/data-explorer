@@ -3,7 +3,7 @@ import DataExplorer from './components/DataExplorer';
 
 function App() {
   return (
-    <div className="App">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <DataExplorer />
     </div>
   );
