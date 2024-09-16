@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Meaningful Bites Data Explorer is a web-based tool designed to visualize and explore data from the Meaningful Bites project. It provides an interactive interface to view, search, and sort data from multiple tables defined in our data schema.
+The Meaningful Bites Data Explorer is a web-based tool designed to visualize and explore data from the Meaningful Bites project. It provides an interactive interface to view, search, and sort data from multiple tables defined in our data schema. It's hosted on GitHub Pages at [meaningful-bites.github.io/data-explorer](https://meaningful-bites.github.io/data-explorer/).
 
 ## Features
 
