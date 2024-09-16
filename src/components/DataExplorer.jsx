@@ -42,8 +42,8 @@ const DataExplorer = () => {
   }, []);
 
   const loadTableData = useCallback(async (tableName) => {
+    setCurrentTable(tableName);
     if (tables[tableName]) {
-      setCurrentTable(tableName);
       setFilteredData(tables[tableName]);
       return;
     }
@@ -61,7 +61,6 @@ const DataExplorer = () => {
       const result = Papa.parse(text, { header: true });
       
       setTables(prev => ({ ...prev, [tableName]: result.data }));
-      setCurrentTable(tableName);
       setFilteredData(result.data);
     } catch (error) {
       console.error(`Error loading data for ${tableName}:`, error);
@@ -130,53 +129,60 @@ const DataExplorer = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4 flex flex-col min-h-screen">
       <h1 className="text-2xl font-bold mb-4">Data Explorer</h1>
       {schema && schema.length > 0 ? (
-        <>
-          <div className="mb-4">
-            {schema.map(table => (
-              <Button 
-                key={table.name} 
-                onClick={() => loadTableData(table.name)}
-                className="mr-2 mb-2"
-              >
-                {table.name}
-              </Button>
-            ))}
+        <div className="flex flex-col flex-grow">
+          <div className="mb-4 sticky top-0 bg-white z-10 pb-4">
+            <div className="flex flex-wrap mb-2">
+              {schema.map(table => (
+                <Button 
+                  key={table.name} 
+                  onClick={() => loadTableData(table.name)}
+                  className="mr-2 mb-2"
+                  variant={currentTable === table.name ? "default" : "outline"}
+                >
+                  {table.name}
+                </Button>
+              ))}
+            </div>
+            <Input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="max-w-sm"
+            />
           </div>
-          <Input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="mb-4"
-          />
-          {currentTable && filteredData.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {Object.keys(filteredData[0]).map(key => (
-                    <TableCell key={key}>
-                      <Button onClick={() => handleSort(key)}>{key}</Button>
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.map((item, index) => (
-                  <TableRow key={index}>
-                    {Object.values(item).map((value, valueIndex) => (
-                      <TableCell key={valueIndex}>{value}</TableCell>
+          <div className="flex-grow overflow-auto">
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : currentTable && filteredData.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {Object.keys(filteredData[0]).map(key => (
+                      <TableCell key={key}>
+                        <Button onClick={() => handleSort(key)}>{key}</Button>
+                      </TableCell>
                     ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p>{currentTable ? 'No data available' : 'Select a table to view data'}</p>
-          )}
-        </>
+                </TableHeader>
+                <TableBody>
+                  {filteredData.map((item, index) => (
+                    <TableRow key={index}>
+                      {Object.values(item).map((value, valueIndex) => (
+                        <TableCell key={valueIndex}>{value}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p>{currentTable ? 'No data available' : 'Select a table to view data'}</p>
+            )}
+          </div>
+        </div>
       ) : (
         <p>No schema available. Please check your SCHEMA.md file.</p>
       )}
