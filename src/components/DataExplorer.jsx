@@ -20,7 +20,7 @@ const DataExplorer = () => {
     let currentTable = null;
   
     markdown.split('\n').forEach(line => {
-      if (line.startsWith('### ')) {
+      if (line.startsWith('## ')) {
         if (currentTable) {
           tables.push(currentTable);
         }
